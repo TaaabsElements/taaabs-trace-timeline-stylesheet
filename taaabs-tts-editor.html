@@ -1,0 +1,349 @@
+<link rel="import" href="./taaabs-trace-timeline-icons.html">
+<link rel="import" href="../taaabs-themes/taaabs-dark-theme.html">
+
+<link rel="import" href="../paper-color-picker/paper-color-picker.html">
+
+<dom-module id="taaabs-tts-editor">
+  <template>
+    <style include="taaabs-dark-theme"></style>
+    <style>
+      :host {
+        display: block;
+      }
+
+      :host .table {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+      }
+
+      :host .rox {
+        display: table-row;
+      }
+
+      :host .cell {
+        display: table-cell;
+      }
+
+      :host .symbolIcon {
+        cursor: pointer;
+        opacity: 0.37;
+        color: grey;
+      }
+
+      :host #symbolIconDiamond {
+        opacity: 1;
+        color: #21b2a6;
+      }
+
+      :host .colorPickerBtn {
+        cursor: pointer;
+      }
+    </style>
+
+    <div>
+
+      <div class="table">
+        <div class="cell" style="padding: 0 5px 0 5px;">
+          CURRENT SYMBOL
+        </div>
+        <div class="cell" style="padding: 0 5px 0 5px">
+          <iron-icon id="symbolIconDIAMOND" class="symbolIcon" icon="timeline-symbols:DIAMOND" on-click="_onSymbolClicked"></iron-icon>
+          <iron-icon id="symbolIconSTAR" class="symbolIcon" icon="timeline-symbols:STAR" on-click="_onSymbolClicked"></iron-icon>
+          <iron-icon id="symbolIconCIRCLE" class="symbolIcon" icon="timeline-symbols:CIRCLE" on-click="_onSymbolClicked"></iron-icon>
+          <iron-icon id="symbolIconSQUARE" class="symbolIcon" icon="timeline-symbols:SQUARE" on-click="_onSymbolClicked"></iron-icon>
+          <iron-icon class="colorPickerBtn" src="colors.png" on-click="_onColorPickerClicked"></iron-icon>
+          <span class="colorPickerBtn" on-click="_onResetClicked"> reset </span>
+        </div>
+        <div class="cell" style="width:30px;padding: 0 5px 0 5px">
+        </div>
+      </div>
+
+      <div class="table">
+        <div class="cell" style$="padding: 0 5px 0 5px; {{_getTypeOpacity(_typeName)}}">
+          TYPE
+        </div>
+        <div class="cell" style$="padding: 0 5px 0 5px; {{_getTypeOpacity(_typeName)}}">
+          <input placeholder="type" class="inputWithIcon" style="outline:0" value="{{_typeName::input}}">
+          </input>
+        </div>
+      </div>
+
+      <div class="table">
+        <template is="dom-repeat" items="{{_rule.attributes}}">
+          <div class="row" style="padding: 5px 0 5px 0">
+            <div class="cell" style="padding: 0 5px 0 5px">
+              <input placeholder="search" class="inputWithIcon" style="outline:0" value="{{item.name::input}}">
+              <iron-icon class="inputWithIconIcon fgDarkBlue" icon="icons:create"></iron-icon>
+              </input>
+            </div>
+            <div class="cell" style="width:80px;padding: 0 5px 0 5px">
+              <select on-change="_onOperatorChanged">
+                <option selected value="==">==</option>
+                <option value=">">></option>
+                <option value=">=">>=</option>
+                <option value="<">
+                  <</option>
+                    <option value="<=">
+                      <=</option>
+              </select>
+            </div>
+            <div class="cell" style="padding: 0 5px 0 5px">
+              <input placeholder="search" class="inputWithIcon" style="outline:0" value="{{item.val::input}}">
+              <iron-icon class="inputWithIconIcon fgDarkBlue" icon="icons:create"></iron-icon>
+              </input>
+            </div>
+            <div class="cell" style="width:30px;padding: 0 5px 0 5px">
+              <iron-icon style="width: 20px" icon="icons:close" class="fgRed fgRedH" on-click="_onDeleteAttributeClicked"></iron-icon>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div class="button" on-click="_onApplyClicked">
+        APPLY
+      </div>
+
+      <paper-color-picker color="{{_colorFromPicker}}" id="picker"></paper-color-picker>
+
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'taaabs-tts-editor',
+
+      properties: {
+
+        ////////////////////////
+        // PROCESS PROPERTIES //
+        ////////////////////////
+
+        _rule: {
+          type: Object,
+          notify: true,
+          value: {
+            typeObsel: null,
+            attributes: [],
+            enabled: true,
+            symbol: {
+              shape: 'DIAMOND',
+              color: '#21b2a6'
+            }
+          }
+        },
+
+        _colorFromPicker: {
+          type: Object,
+          notify: true,
+          value: {
+            red: 33,
+            green: 178,
+            blue: 166
+          }
+        },
+
+        _typeName: {
+          type: String,
+          notify: true,
+          value: "",
+          observer: '_onTypeNameChange'
+        },
+
+        /**
+         * True if the current rule already exists. False ohterwise.
+         *
+         * @attribute _isAnExistingRule
+         * @type Boolean
+         */
+        _isAnExistingRule: {
+          type: Boolean,
+          notify: true,
+          value: false
+        },
+
+      },
+
+      observers: [
+        '_onColorFromPickerChanged(_colorFromPicker.red,_colorFromPicker.green,_colorFromPicker.blue)'
+      ],
+
+      /////////////////////
+      // INPUT FUNCTIONS //
+      /////////////////////
+
+      addAttribute: function(name, value) {
+        this.push('_rule.attributes', {
+          name: name,
+          operator: null,
+          val: value,
+        })
+      },
+
+      /**
+       * Set `_typeName`.
+       *
+       * @param {!required} type {String} The type to set..
+       *
+       * @method setType
+       */
+      setType: function(type) {
+
+        this.set('_typeName', type);
+
+      },
+
+      /**
+       * Set an existing rule.
+       *
+       * @param {!required} rule {String} The rule to set.
+       *
+       * @method setRule
+       */
+      setRule: function(rule) {
+        this.set('_isAnExistingRule', true);
+
+        this.$['symbolIcon' + this._rule.symbol.shape].style.opacity = 0.37;
+        this.$['symbolIcon' + this._rule.symbol.shape].style.color = 'grey';
+
+        this.set('_rule', rule);
+
+        if (this._rule.typeObsel)
+          this.set('_typeName', this._rule.typeObsel.name);
+
+        this.$['symbolIcon' + this._rule.symbol.shape].style.opacity = 1;
+        this.$['symbolIcon' + this._rule.symbol.shape].style.color = this._rule.symbol.color;
+      },
+
+      //////////////////
+      // UI FUNCTIONS //
+      //////////////////
+
+      _getTypeOpacity: function(typeName) {
+
+        if (typeName !== "")
+          return "opacity: 1";
+        else return "opacity: 0.37";
+
+      },
+
+      _onApplyClicked: function() {
+
+        this.$['symbolIcon' + this._rule.symbol.shape].style.opacity = 0.37;
+        this.$['symbolIcon' + this._rule.symbol.shape].style.color = 'grey';
+
+        var style = this._rule;
+        if (!this._isAnExistingRule) {
+          this.fire('APPLY_STYLE', {
+            rule: style
+          });
+        } else {
+          this.fire('UPDATE_STYLE');
+          this.set('_isAnExistingRule', false);
+        }
+
+        this.set('_rule', {
+          typeObsel: null,
+          attributes: [],
+          enabled: true,
+          symbol: {
+            shape: 'DIAMOND',
+            color: '#21b2a6'
+          }
+        });
+
+        this.set('_typeName', "");
+      },
+
+      _onSymbolClicked: function(e) {
+        this.$['symbolIcon' + this._rule.symbol.shape].style.opacity = 0.37;
+        this.$['symbolIcon' + this._rule.symbol.shape].style.color = 'grey';
+
+        this.set('_rule.symbol.shape', Polymer.dom(e).rootTarget.getAttribute('icon').replace('timeline-symbols:', ''));
+        this.$['symbolIcon' + Polymer.dom(e).rootTarget.getAttribute('icon').replace('timeline-symbols:', '')].style.opacity = 1;
+        this.$['symbolIcon' + Polymer.dom(e).rootTarget.getAttribute('icon').replace('timeline-symbols:', '')].style.color = this._rule.symbol.color;
+
+      },
+
+      _onColorPickerClicked: function() {
+        this.$.picker.open();
+      },
+
+      /**
+       * Trigerred wheb the user changes a operator. Applies that operator.
+       *
+       * @param {!required} e {String} Event from click.
+       *
+       * @method _onOperatorChanged
+       */
+      _onOperatorChanged: function(e) {
+        e.model.item.operator = e.target.options[e.target.selectedIndex].value;
+        console.log(e.target.options[e.target.selectedIndex].value);
+      },
+
+      /**
+       * Remove the selected attribute from the `_rule`.
+       *
+       * @param {!required} e {String} Click event..
+       *
+       * @method _onDeleteAttributeClicked
+       */
+      _onDeleteAttributeClicked: function(e) {
+        this.splice('_rule.attributes', e.model.index, 1);
+      },
+
+      /**
+       * Reset the `_rule`.
+       *
+       * @method _onResetClicked
+       */
+      _onResetClicked: function() {
+        this.set('_rule', {
+          typeObsel: null,
+          attributes: [],
+          enabled: true,
+          symbol: {
+            shape: 'DIAMOND',
+            color: '#21b2a6'
+          }
+        });
+
+        this.set('_typeName', "");
+      },
+
+      ///////////////////////
+      // PROCESS FUNCTIONS //
+      ///////////////////////
+
+        _onColorFromPickerChanged: function() {
+        if (this._colorFromPicker) {
+          var hex = "#" +
+            ("0" + parseInt(this._colorFromPicker['red'], 10).toString(16)).slice(-2) +
+            ("0" + parseInt(this._colorFromPicker['green'], 10).toString(16)).slice(-2) +
+            ("0" + parseInt(this._colorFromPicker['blue'], 10).toString(16)).slice(-2);
+
+          this.set('_rule.symbol.color', hex);
+          this.$['symbolIcon' + this._rule.symbol.shape].style.color = hex;
+        }
+      },
+
+      /**
+       * Triggered when `_typeName` changes. Set the `_rule.typeObsel` attribute according to `_typeName`.
+       *
+       * @method _onTypeNameChange
+       */
+      _onTypeNameChange: function() {
+        if (this._rule) {
+          if (this._typeName === "") {
+            this.set('_rule.typeObsel', null);
+          } else {
+            this.set("_rule.typeObsel", {
+              name: this._typeName
+            })
+          }
+        }
+      }
+
+    });
+  </script>
+</dom-module>
