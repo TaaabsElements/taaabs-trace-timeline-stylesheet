@@ -1,108 +1,85 @@
 <link rel="import" href="../iron-collapse/iron-collapse.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+
 <dom-module id="taaabs-trace-timeline-stylesheet">
 
   <template>
 
     <style>
+      :host {
+        display: block;
+      }
 
+      :host .flexchild {
+        @apply(--layout-flex);
+      }
+
+      :host .flex-vertical {
+        @apply(--layout-vertical);
+      }
+
+      :host .flex-horizontal {
+        @apply(--layout-horizontal);
+      }
+
+      :host .flex-equal-justified {
+        @apply(--layout-justified);
+      }
+
+      :host .flex-equal-around-justified {
+        @apply(--layout-horizontal);
+        @apply(--layout-around-justified);
+      }
+
+      :host .flex-reversed {
+        @apply(--layout-horizontal-reverse);
+      }
+
+      :host .tiny-icon {
+        width: 16px;
+        height: 16px;
+      }
     </style>
 
-    <div style="height: 40px; width : 100%">
-      <iron-icon icon="icons:add" on-click="_onAddClick"></iron-icon>
-      <iron-icon icon="icons:file-download" on-click="_onDownloadClick"></iron-icon>
-      <iron-icon icon="icons:file-upload" on-click="_onUploadClick"></iron-icon>
+    <div class="flex-horizontal" style="padding:5px">
+      <div class="flexchild">
+        <span style="font-size: 20px">[[currentStylesheet.name]]</span>
+      </div>
+      <div style="width: 30px">
+        <iron-icon icon="icons:menu" on-click="_onTemplateMenuClick"></iron-icon>
+      </div>
     </div>
-    <iron-collapse id="styleList">
-      <div class="content">
-        <template is="dom-repeat" items="[[_stylesheets]]">
-          <div style="padding: 5px; cursor: pointer; border: solid 1px gray;" on-click="_onStyleListClick">
-            <h4>[[item.name]]</h4>
-            <p>[[item.description]]</p>
-          </div>
-        </template>
+    <div style="padding:5px">
+      <p style="font-style:italic">[[currentStylesheet.description]]</p>
+    </div>
+    <iron-collapse id="templateOptionsCollapse">
+      <div class="content flex-equal-around-justified flex-horizontal">
+        <iron-icon icon="icons:add" on-click="_onTemplateAddClick"></iron-icon>
+        <iron-icon icon="icons:edit" on-click="_onTemplateEditClick"></iron-icon>
+        <iron-icon icon="icons:file-download" on-click="_onTemplateDownloadClick"></iron-icon>
+        <iron-icon icon="icons:file-upload" on-click="_onTemplateUploadClick"></iron-icon>
+        <iron-icon icon="icons:close" on-click="_onTemplateDeleteClick"></iron-icon>
       </div>
     </iron-collapse>
-    <div style="text-align: center; width: 100%; padding: 5px; border: solid 1px gray">
-      [[styleTemplate.name]]
+    <div class="flex-vertical" id="rules-container" style="padding: 5px">
+
+
     </div>
-    <div style="text-align: justify; width: 100%; padding: 3px">
-      [[styleTemplate.description]]
+
+
+  <paper-dialog id="uploadStyleModal">
+    <h2>Save your stylesheet</h2>
+    <input placeholder="name" class="inputWithIcon" style="outline:0" value="{{_styleName::input}}">
+    </input>
+    <input placeholder="description" class="inputWithIcon" style="outline:0" value="{{_styleDescription::input}}">
+    </input>
+    <div class="buttons">
+      <paper-button dialog-dismiss>Cancel</paper-button>
+      <paper-button dialog-confirm autofocus on-click="_onUploadStylesheet">Accept</paper-button>
     </div>
-    <template is="dom-repeat" id="stylesListRepeat" items="{{styleTemplate.rules}}">
-      <div class="ttsRule" style="display: table; table-layout: fixed; width : 100%;">
-
-        <!-- ////// -->
-        <!-- SYMBOL -->
-        <!-- ////// -->
-
-
-        <div style="display: table-cell; width: 60px; position: relative">
-          <div style=" display: block; position: absolute; margin-top: -12px; margin-left: -12px; left: 50%; top: 50%; width: 36px; height: 36px">
-            <iron-icon class="icon fgDarkBlue fgDarkBlueH" icon="[[_getVisibility(item.enabled)]]" title="[[localize(_getVisibility(rule.enabled))]]" on-click="_onVisibilityClicked">
-            </iron-icon>
-          </div>
-        </div>
-
-        <div style="display: table-cell; width: 60px; position: relative">
-          <div style=" display: block; position: absolute; margin-top: -18px; margin-left: -18px; left: 50%; top: 50%; width: 36px; height: 36px">
-            <iron-icon icon="timeline-symbols:{{item.symbol.shape}}" style$="color: {{item.symbol.color}}; width: 36px; height: 36px"></iron-icon>
-          </div>
-
-        </div>
-
-        <!-- ///// -->
-        <!-- RULES -->
-        <!-- ///// -->
-
-        <div style="display: table-cell; width: 100%">
-
-          <div>
-            <b><span>{{item.typeObsel.name}}</span></b>
-          </div>
-
-          <template is="dom-repeat" items="{{item.attributes}}">
-            <div>
-              <span>{{item.name}}</span>
-              <span>{{item.operator}}</span>
-              <span>{{item.val}}</span>
-            </div>
-          </template>
-
-        </div>
-
-        <!-- /////// -->
-        <!-- OPTIONS -->
-        <!-- /////// -->
-
-        <div style="display: table-cell; width: 40px">
-
-          <div>
-            <iron-icon class="icon fgRed fgRedH" icon="icons:clear" title="[[localize('delete')]]" on-click="_onDeleteClicked"></iron-icon>
-          </div>
-          <div>
-            <iron-icon class="icon fgDarkBlue fgDarkBlueH" icon="icons:settings" title="[[localize('settings')]]" on-click="_onSettingsClicked"></iron-icon>
-          </div>
-          <div>
-            <iron-icon class="icon fgDarkBlue fgDarkBlueH" icon="icons:content-copy" on-click="_onDuplicateClicked">
-            </iron-icon>
-          </div>
-
-        </div>
-
-      </div>
-    </template>
-
-    <paper-dialog id="uploadStyleModal">
-      <h2>Save your stylesheet</h2>
-      <input placeholder="name" class="inputWithIcon" style="outline:0" value="{{_styleName::input}}">
-      </input>
-      <input placeholder="description" class="inputWithIcon" style="outline:0" value="{{_styleDescription::input}}">
-      </input>
-      <div class="buttons">
-        <paper-button dialog-dismiss>Cancel</paper-button>
-        <paper-button dialog-confirm autofocus on-click="_onUploadStylesheet">Accept</paper-button>
-      </div>
-    </paper-dialog>
+  </paper-dialog>
 
   </template>
 
@@ -122,6 +99,14 @@
           type: Object,
           notify: true,
           value: null
+        },
+
+        colorForType: {
+          type: Array,
+          notify: true,
+          value: function() {
+            return [];
+          }
         },
 
         _stylesheets: {
@@ -148,6 +133,38 @@
           value: ""
         },
 
+        _predefined_colors_: {
+          type: Array,
+          value: function() {
+            return [
+              '#3F51B5', /* Indigo       */
+              '#FFEB3B', /* Yellow       */
+              '#FF5722', /* Deep Orange  */
+              '#4CAF50', /* Green        */
+              '#009688', /* Teal         */
+              '#9C27B0', /* Purple       */
+              '#CDDC39', /* Lime         */
+              '#FF9800', /* Orange       */
+              '#03A9F4', /* Light Blue   */
+              '#E91E63', /* Pink         */
+              '#F44336', /* Red          */
+              '#607D8B', /* Blue Grey    */
+            ];
+          }
+        },
+
+        /**
+         * The current stylesheet.
+         *
+         * @attribute currentStylesheet
+         * @type Object
+         */
+        currentStylesheet: {
+          type: Object,
+          notify: true,
+          value: null
+        },
+
         /**
          * Localization.
          * fr, en.
@@ -168,42 +185,265 @@
 
       attached: function() {},
 
+      /** ----------------------------------------------------------------------------
+      // MARK: Functions : DOM events.
+      **/
+
+      /**
+       * Toggles `templateOptionsCollapse`.
+       *
+       * @method _onTemplateMenuClick
+       */
+      _onTemplateMenuClick: function() {
+        this.$.templateOptionsCollapse.toggle();
+      },
+
+      /**
+       * Triggered on the `visibility` icon is clicked.
+       * Toggle the `rule` enabled attribute.
+       *
+       * @method _onVisibilityClicked
+       */
+      _onRuleVisibilityClicked: function(rule) {
+        console.log(rule);
+      },
+
+      /**
+       * Triggered on the `visibility` icon is clicked.
+       * Toggle the `rule` enabled attribute.
+       *
+       * @method _onVisibilityClicked
+       */
+      _onRuleContentCopyClicked: function(rule) {
+        console.log(rule);
+      },
+
+      /**
+       * Triggered on the `visibility` icon is clicked.
+       * Toggle the `rule` enabled attribute.
+       *
+       * @method _onVisibilityClicked
+       */
+      _onRuleSettingsClicked: function(rule) {
+        console.log(rule);
+      },
+
+      /**
+       * Triggered on the `visibility` icon is clicked.
+       * Toggle the `rule` enabled attribute.
+       *
+       * @method _onVisibilityClicked
+       */
+      _onRuleDeleteClicked: function(rule) {
+        console.log(rule);
+      },
+
+      /** ----------------------------------------------------------------------------
+      // MARK: Functions : DOM Elements creation
+      **/
+
+      _createAttributesTable: function(attributes) {
+        var table = document.createElement('table');
+        table.style.fontSize = '12px';
+        for (var i = 0; i < attributes.length; i++) {
+          // Create the cells
+          var td_name = document.createElement('td');
+          td_name.textContent = attributes[i].name;
+          var td_op = document.createElement('td');
+          td_op.textContent = attributes[i].operator;
+          var td_val = document.createElement('td');
+          td_val.textContent = attributes[i].val;
+          // Create the line
+          var tr = document.createElement('tr');
+          tr.appendChild(td_name);
+          tr.appendChild(td_op);
+          tr.appendChild(td_val);
+          table.appendChild(tr);
+        }
+        return table;
+      },
+
+      _createRuleIconDiv: function(symbol) {
+        var div = document.createElement('div');
+        var icon = document.createElement('iron-icon');
+        icon.set('icon', 'timeline-symbols:' + symbol.shape);
+        icon.style.color = symbol.color;
+        icon.style.width = icon.style.height = '40px';
+        div.appendChild(icon);
+        return div;
+      },
+
+      _createSubRuleDiv: function(subRule) {
+        // Create the main div
+        var div = document.createElement('div');
+        // Create the type div
+        var type_div = document.createElement('div');
+        type_div.style.textAlign = 'center';
+        type_div.style.width = '100%';
+        type_div.textContent = subRule.type;
+        // Create the attributes table
+        var att_table = this._createAttributesTable(subRule.attributes);
+        // Return the whole thing
+        div.appendChild(type_div);
+        div.appendChild(att_table);
+        return div;
+      },
+
+      _createRuleContentDiv: function(rule) {
+        // Create the main div
+        var main_div = document.createElement('div');
+        main_div.classList.add('flex-horizontal');
+        main_div.style.paddingBottom = main_div.style.paddingTop = '5px';
+        main_div.style.borderBottom = 'solid 1px gray';
+        // Create the icon div
+        var icon_div = this._createRuleIconDiv(rule.symbol);
+        // Create the sub rules div
+        var sub_rule_div = document.createElement('div');
+        sub_rule_div.classList.add('flexchild');
+        for (var i = 0; i < rule.rules.length; i++) {
+          var tmp_div = this._createSubRuleDiv(rule.rules[i]);
+          sub_rule_div.appendChild(tmp_div);
+        }
+        main_div.appendChild(icon_div);
+        main_div.appendChild(sub_rule_div);
+        return main_div;
+      },
+
+      _createRuleSettingsIcons: function(rule) {
+        // Create the iron-collapse
+        var ic = document.createElement('iron-collapse');
+        // Create the div
+        var div = document.createElement('div');
+        div.classList.add('content', 'flex-equal-around-justified', 'flex-horizontal');
+        // Create the visibility icon_div
+        var vi = document.createElement('iron-icon');
+        vi.classList.add('tiny-icon', 'clickable');
+        if (rule.visible) vi.set('icon', 'visibility');
+        else vi.set('icon', 'visibility-off');
+        vi.addEventListener('click', function(evt) {
+          this._onRuleVisibilityClicked(rule);
+        }.bind(this));
+        // Create the content-copy icon_div
+        var cci = document.createElement('iron-icon');
+        cci.classList.add('tiny-icon', 'clickable');
+        cci.set('icon', 'content-copy');
+        cci.addEventListener('click', function(evt) {
+          this._onRuleContentCopyClicked(rule);
+        }.bind(this));
+        // Create the settings icon_div
+        var si = document.createElement('iron-icon');
+        si.classList.add('tiny-icon', 'clickable');
+        si.set('icon', 'settings');
+        si.addEventListener('click', function(evt) {
+          this._onRuleSettingsClicked(rule);
+        }.bind(this));
+        // Create the close icon_div
+        var ci = document.createElement('iron-icon');
+        ci.classList.add('tiny-icon', 'clickable');
+        ci.set('icon', 'close');
+        ci.addEventListener('click', function(evt) {
+          this._onRuleDeleteClicked(rule);
+        }.bind(this));
+        // Return the whole thing
+        div.appendChild(vi);
+        div.appendChild(cci);
+        div.appendChild(si);
+        div.appendChild(ci);
+        ic.appendChild(div);
+        return ic;
+      },
+
+      _createRuleDiv: function(rule) {
+        var main_div = document.createElement('div');
+        // Create the title div
+        var title_div = document.createElement('div');
+        title_div.classList.add('flex-horizontal');
+        var rule_name_div = document.createElement('div');
+        rule_name_div.classList.add('flexchild');
+        var rule_name_span = document.createElement('span');
+        rule_name_span.style.fontSize = '16px';
+        rule_name_span.textContent = rule.id;
+        rule_name_div.appendChild(rule_name_span);
+        var option_icon_div = document.createElement('div');
+        option_icon_div.style.width = '20px';
+        var option_icon = document.createElement('iron-icon');
+        option_icon.set('icon', 'menu');
+        option_icon.classList.add('tiny-icon', 'clickable');
+        option_icon_div.appendChild(option_icon);
+        title_div.appendChild(rule_name_div);
+        title_div.appendChild(option_icon_div);
+        // Create the rule settings panel
+        var ruleSettingsIcons = this._createRuleSettingsIcons(rule);
+        option_icon.addEventListener('click', function(evt) {
+          ruleSettingsIcons.toggle();
+        }.bind(this));
+        // Create the rule content div
+        var ruleContentDiv = this._createRuleContentDiv(rule);
+        // Return the whole thing
+        main_div.appendChild(title_div);
+        main_div.appendChild(ruleSettingsIcons);
+        main_div.appendChild(ruleContentDiv);
+        return main_div;
+      },
+
+      refresh: function() {
+        // Empty the rules list
+        this.$['rules-container'].innerHTML = "";
+        for(var i = 0; i < this.currentStylesheet.rules.length; i++){
+          this.$['rules-container'].appendChild( this._createRuleDiv(this.currentStylesheet.rules[i]));
+        }
+        console.log(JSON.stringify(this.currentStylesheet, null, 4));
+      },
+
+      /** ----------------------------------------------------------------------------
+      // MARK: OLD STUFF
+      **/
+
       addRule: function(rule) {
         this.push('styleTemplate.rules', rule);
       },
 
-      createRandomStyle: function() {
+      _uriToName: function(uri) {
+        return (uri) ? uri.replace(this.model.uri + '#', '') : uri;
+      },
 
-        var rules = [];
+      _nameToUri: function(name) {
+        return this.model.uri + '#' + name;
+      },
 
-        function get_random_symbol() {
-          var color = '#' + Math.floor(Math.random() * 16777215).toString(16);
-          /* TODO See if random shape is better than simple circle
-          var shape = ['DIAMOND', 'CIRCLE', 'SQUARE', 'STAR'][Math.floor(Math.random() * 4)];*/
-          var shape = 'CIRCLE';
-          return {
-            color: color,
-            shape: shape
-          };
+      _setSymbolForType: function(uri, pointer) {
+        if (pointer >= this._predefined_colors_.length) {
+          pointer = 0;
         }
+        return {
+          'd': [uri, {
+            'color': this._predefined_colors_[pointer],
+            'shape': 'CIRCLE'
+          }],
+          'p': pointer + 1
+        };
+      },
+
+      createRandomStyle: function() {
+        var rules = [];
+        var pointer = 0;
 
         for (var i = 0; i < this.model.list_type_obsels.length; i++) {
+          var ssft = this._setSymbolForType(this.model.list_type_obsels[i]['@id'], pointer);
+          pointer = ssft.p;
           var rule = {
-            typeObsel: {
-              name: this.model.list_type_obsels[i]['@id'].replace('#', 'm:')
-            },
-            enabled: true,
-            attributes: [],
-            symbol: get_random_symbol()
+            id: 'default_rule_' + i,
+            rules: [{
+              type: this._uriToName(this.model.list_type_obsels[i]['@id']),
+              attributes: []
+            }],
+            visible: true,
+            symbol: ssft.d[1]
           };
-          rules.push(rule);
+          var d = this._createRuleDiv(rule);
+          this.$['rules-container'].appendChild(d);
         }
 
-        this.set('styleTemplate', {
-          name: 'Symbol for type',
-          description: 'This is the default stylesheet.',
-          rules: rules
-        });
       },
 
       loadStylesheetsFromModel: function() {
@@ -216,7 +456,7 @@
         this.$.stylesListRepeat.set('items', []);
         this.async(function() {
           this.$.stylesListRepeat.set('items', this.styleTemplate.rules);
-        },50);
+        }, 50);
       },
 
       /**
@@ -228,17 +468,6 @@
        */
       _getVisibility: function(enabled) {
         return (enabled) ? 'icons:visibility' : 'icons:visibility-off';
-      },
-
-      /**
-       * Triggered on the `visibility` icon is clicked.
-       * Toggle the `rule` enabled attribute.
-       *
-       * @method _onVisibilityClicked
-       */
-      _onVisibilityClicked: function(e) {
-        this.set('styleTemplate.rules.#' + e.model.index + '.enabled', !e.model.item.enabled);
-        this.fire('template_changed');
       },
 
       /**
