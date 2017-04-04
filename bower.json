@@ -17,7 +17,7 @@
   "main": "taaabs-trace-timeline-stylesheet.html",
   "license": "https://github.com/TaaabsElements/taaabs-trace-timeline-stylesheet/LICENSE",
   "dependencies": {
-    "polymer": "polymer/polymer#^1.0.0",
+    "polymer": "polymer/polymer",
     "app-localize-behavior": "PolymerElements/app-localize-behavior",
     "iron-collapse": "PolymerElements/iron-collapse",
     "iron-icons": "PolymerElements/iron-icons",
