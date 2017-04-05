@@ -48,7 +48,7 @@
         <span style="font-size: 20px">[[currentStylesheet.name]]</span>
       </div>
       <div style="width: 30px">
-        <iron-icon icon="icons:menu" on-click="_onTemplateMenuClick"></iron-icon>
+        <iron-icon icon="icons:expand-more" on-click="_onTemplateMenuClick"></iron-icon>
       </div>
     </div>
     <div style="padding:5px">
@@ -367,7 +367,7 @@
         var option_icon_div = document.createElement('div');
         option_icon_div.style.width = '20px';
         var option_icon = document.createElement('iron-icon');
-        option_icon.set('icon', 'menu');
+        option_icon.set('icon', 'expand-more');
         option_icon.classList.add('tiny-icon', 'clickable');
         option_icon_div.appendChild(option_icon);
         title_div.appendChild(rule_name_div);
