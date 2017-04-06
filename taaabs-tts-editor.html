@@ -8,6 +8,7 @@
 <link rel="import" href="../paper-listbox/paper-listbox.html">
 <link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-swatch-picker/paper-swatch-picker.html">
 <link rel="import" href="../notify-toast-behavior/notify-toast-behavior.html">
 
 <dom-module id="taaabs-tts-editor">
@@ -65,10 +66,10 @@
       <div class="flex-horizontal flex-equal-justified">
         <div class="flex-vertical flexchild">
           <div>
-            <paper-input label="Rule ID" on-change="_onRuleIdInputChange"></paper-input>
+            <paper-input id="rule-id-input" label="Rule ID" on-change="_onRuleIdInputChange"></paper-input>
           </div>
           <div>
-            <paper-dropdown-menu label="Rule type">
+            <paper-dropdown-menu id="rule-type" label="Rule type">
               <paper-listbox class="dropdown-content" on-iron-select="_onRuleTypeSelectChange" selected='0'>
                 <paper-item value="Simple">Simple</paper-item>
                 <paper-item value="Group">Group</paper-item>
@@ -83,7 +84,7 @@
           <div class="flex-vertical" style="width: 120px">
             <div class="flex-reversed">
               <paper-dropdown-menu label="shape" noAnimations>
-                <paper-listbox class="dropdown-content" on-iron-select="_onShapeSelectChange" selected='0'>
+                <paper-listbox id="rule-shape" class="dropdown-content" on-iron-select="_onShapeSelectChange" selected='0'>
                   <paper-item value="DIAMOND">
                     <iron-icon class="symbolIcon" icon="timeline-symbols:DIAMOND"></iron-icon>
                     <span style="margin-left: 10px">DIAMOND</span>
@@ -104,8 +105,7 @@
               </paper-dropdown-menu>
             </div>
             <div>
-              <span style="color: gray">color</span>
-              <iron-icon class="colorPickerBtn" style="float: right" src="colors.png" on-click="_onColorPickerClicked"></iron-icon>
+              <paper-swatch-picker id="rule-color" on-color-picker-selected="_onColorPickerSelected"></paper-swatch-picker>
             </div>
           </div>
         </div>
@@ -119,9 +119,6 @@
         <paper-button on-click="_onApplyStylesheetRule" raised>Apply</paper-button>
       </div>
     </div>
-
-  <paper-color-picker color="{{_colorFromPicker}}" id="picker"></paper-color-picker>
-
   </div>
 
   <paper-toast class="fit-bottom" id="__notify_toast__" duration=0> </paper-toast>
@@ -173,11 +170,22 @@
 
       behaviors: [NotifyToastBehavior],
 
-      observers: [
-        '_onColorFromPickerChanged(_colorFromPicker.red,_colorFromPicker.green,_colorFromPicker.blue)'
-      ],
+      observers: [],
 
       attached: function() {},
+
+      setRule: function(rule){
+        this.set('_currentStylesheetRule', this.createNewStylesheetRule(rule));
+        console.log(this._currentStylesheetRule);
+        this.$['rule-id-input'].set('value', this._currentStylesheetRule.id);
+        var sl = ['DIAMOND', 'STAR', 'CIRCLE', 'SQUARE'];
+        this.$['rule-shape'].set('selected', sl.indexOf(rule.symbol.shape));
+        this.$['rule-color'].set('color', rule.symbol.color);
+        this.$.symbolIconPreview.style.color = this.$['rule-color'].color;
+        for(var i = 0; i < this._currentStylesheetRule.rules.length; i++){
+          this.$['rules-container'].appendChild(this._generateRuleContainer(i, this._currentStylesheetRule.rules[i]));
+        }
+      },
 
       /** ----------------------------------------------------------------------
       // MARK: Function : DOM events
@@ -191,6 +199,7 @@
        * @method _onRuleIdInputChange
        */
       _onRuleIdInputChange: function(evt) {
+        console.log('hmmmm');
         var value = evt.target.value;
         this._currentStylesheetRule.set_id(value);
         if (!this._currentStylesheetRule.is_unique(this._template)) alert('aie');
@@ -217,7 +226,7 @@
        */
       _onShapeSelectChange: function(evt) {
         var shape = evt.target.selectedItem.getAttribute('value');
-        var color = this._getHexColorFromPicker();
+        var color = this.$['rule-color'].color;
         this._currentStylesheetRule.set_symbol(color, shape);
         // Modify the displayed icon
         var iconName = 'timeline-symbols:' + shape;
@@ -348,6 +357,9 @@
 
       _onApplyStylesheetRule: function(){
         console.log(this._currentStylesheetRule);
+        this.fire('stylesheet-editor-apply', {
+          'rule': this._currentStylesheetRule.clone()
+        });
       },
 
       /** ----------------------------------------------------------------------
@@ -558,6 +570,7 @@
             'shape': 'CIRCLE'
           };
           this.rules = json.rules || [];
+          this.visibility = json.visibility || true;
           // Set the id of the StylesheetRule
           this.set_id = function(id) {
             this.id = id;
@@ -611,6 +624,14 @@
           this.clone_rule = function(rule) {
             return JSON.parse(JSON.stringify(rule));
           }
+          this.clone = function(){
+            return JSON.parse(JSON.stringify({
+              'id': this.id,
+              'symbol': this.symbol,
+              'rules': this.rules,
+              'visibility': this.visibility
+            }));
+          }
           // Returns the rules of the StylesheetRule.
           this.get_rules = function() {
             return this.rules;
@@ -657,22 +678,10 @@
       // MARK: Functions: Colors picker
       **/
 
-      _onColorPickerClicked: function() {
-        this.$.picker.open();
-      },
-
-      _onColorFromPickerChanged: function() {
-        if (this._colorFromPicker) {
-          var hex = "#" +
-            ("0" + parseInt(this._colorFromPicker['red'], 10).toString(16)).slice(-2) +
-            ("0" + parseInt(this._colorFromPicker['green'], 10).toString(16)).slice(-2) +
-            ("0" + parseInt(this._colorFromPicker['blue'], 10).toString(16)).slice(-2);
-
-          //this.set('_rule.symbol.color', hex);
-          this.$.symbolIconPreview.style.color = hex;
-          this._currentStylesheetRule.set_symbol(hex);
-        }
-      },
+      _onColorPickerSelected: function() {
+        this.$.symbolIconPreview.style.color = this.$['rule-color'].color;
+        this._currentStylesheetRule.set_symbol(this.$['rule-color'].color);
+      }
 
     });
   </script>

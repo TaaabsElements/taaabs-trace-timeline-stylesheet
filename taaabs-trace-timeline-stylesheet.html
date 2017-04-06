@@ -226,6 +226,9 @@
        */
       _onRuleSettingsClicked: function(rule) {
         console.log(rule);
+        this.fire('timeline-stylesheet-rule-setting', {
+          'rule': rule
+        });
       },
 
       /**
@@ -248,11 +251,11 @@
         for (var i = 0; i < attributes.length; i++) {
           // Create the cells
           var td_name = document.createElement('td');
-          td_name.textContent = attributes[i].name;
+          td_name.textContent = attributes[i].uri;
           var td_op = document.createElement('td');
           td_op.textContent = attributes[i].operator;
           var td_val = document.createElement('td');
-          td_val.textContent = attributes[i].val;
+          td_val.textContent = attributes[i].value;
           // Create the line
           var tr = document.createElement('tr');
           tr.appendChild(td_name);
@@ -399,7 +402,15 @@
       **/
 
       addRule: function(rule) {
-        this.push('styleTemplate.rules', rule);
+        var exists = false;
+        for(var i = 0 ; i < this.currentStylesheet.rules.length; i++){
+          if(this.currentStylesheet.rules[i].id === rule.id){
+            this.currentStylesheet.rules[i] = rule;
+            exists = true;
+          }
+        }
+        if(!exists) this.push('currentStylesheet.rules', rule);
+        this.refresh();
       },
 
       _uriToName: function(uri) {
