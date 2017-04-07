@@ -225,9 +225,8 @@
        * @method _onVisibilityClicked
        */
       _onRuleSettingsClicked: function(rule) {
-        console.log(rule);
         this.fire('timeline-stylesheet-rule-setting', {
-          'rule': rule
+          'rule': JSON.parse(JSON.stringify(rule))
         });
       },
 
@@ -251,7 +250,7 @@
         for (var i = 0; i < attributes.length; i++) {
           // Create the cells
           var td_name = document.createElement('td');
-          td_name.textContent = attributes[i].uri;
+          td_name.textContent = this._uriToName(attributes[i].uri);
           var td_op = document.createElement('td');
           td_op.textContent = attributes[i].operator;
           var td_val = document.createElement('td');
@@ -283,7 +282,7 @@
         var type_div = document.createElement('div');
         type_div.style.textAlign = 'center';
         type_div.style.width = '100%';
-        type_div.textContent = subRule.type;
+        type_div.textContent =  this._uriToName(subRule.type);
         // Create the attributes table
         var att_table = this._createAttributesTable(subRule.attributes);
         // Return the whole thing
@@ -411,6 +410,9 @@
         }
         if(!exists) this.push('currentStylesheet.rules', rule);
         this.refresh();
+        this.fire('stylesheet-changed', {
+          'stylesheet': this.currentStylesheet
+        });
       },
 
       _uriToName: function(uri) {

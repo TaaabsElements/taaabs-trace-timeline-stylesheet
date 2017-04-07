@@ -68,14 +68,6 @@
           <div>
             <paper-input id="rule-id-input" label="Rule ID" on-change="_onRuleIdInputChange"></paper-input>
           </div>
-          <div>
-            <paper-dropdown-menu id="rule-type" label="Rule type">
-              <paper-listbox class="dropdown-content" on-iron-select="_onRuleTypeSelectChange" selected='0'>
-                <paper-item value="Simple">Simple</paper-item>
-                <paper-item value="Group">Group</paper-item>
-              </paper-listbox>
-            </paper-dropdown-menu>
-          </div>
         </div>
         <div class="flex-horizontal">
           <div class="flexchild" style="padding: 20px">
@@ -117,6 +109,7 @@
       </div>
       <div class="flex-reversed">
         <paper-button on-click="_onApplyStylesheetRule" raised>Apply</paper-button>
+        <paper-button on-click="clearRule" raised>Clear</paper-button>
       </div>
     </div>
   </div>
@@ -175,16 +168,25 @@
       attached: function() {},
 
       setRule: function(rule){
+        console.log('yo');
         this.set('_currentStylesheetRule', this.createNewStylesheetRule(rule));
-        console.log(this._currentStylesheetRule);
         this.$['rule-id-input'].set('value', this._currentStylesheetRule.id);
         var sl = ['DIAMOND', 'STAR', 'CIRCLE', 'SQUARE'];
-        this.$['rule-shape'].set('selected', sl.indexOf(rule.symbol.shape));
         this.$['rule-color'].set('color', rule.symbol.color);
+        this.$['rule-shape'].set('selected', sl.indexOf(rule.symbol.shape));
         this.$.symbolIconPreview.style.color = this.$['rule-color'].color;
         for(var i = 0; i < this._currentStylesheetRule.rules.length; i++){
           this.$['rules-container'].appendChild(this._generateRuleContainer(i, this._currentStylesheetRule.rules[i]));
         }
+      },
+
+      clearRule: function(){
+        this.$['rules-container'].innerHTML = '';
+        this.set('_currentStylesheetRule', this.createNewStylesheetRule());
+        this.$['rule-id-input'].set('value', "");
+        this.$['rule-shape'].set('selected', 0);
+        this.$['rule-color'].set('color', '#000000');
+        this.$.symbolIconPreview.style.color = this.$['rule-color'].color;
       },
 
       /** ----------------------------------------------------------------------
@@ -199,22 +201,9 @@
        * @method _onRuleIdInputChange
        */
       _onRuleIdInputChange: function(evt) {
-        console.log('hmmmm');
         var value = evt.target.value;
         this._currentStylesheetRule.set_id(value);
         if (!this._currentStylesheetRule.is_unique(this._template)) alert('aie');
-      },
-
-      /**
-       * On change event on `rule type` select, changes the rule type in the current stylesheet rule.
-       *
-       * @param {!required} evt {Event} The event fired by change.
-       *
-       * @method _onRuleTypeSelectChange
-       */
-      _onRuleTypeSelectChange: function(evt) {
-        var index = Number(evt.target.selected);
-        (index === 0) ? this._currentStylesheetRule.set_rule_type('Simple'): this._currentStylesheetRule.set_rule_type('Group');
       },
 
       /**
@@ -234,7 +223,7 @@
       },
 
       /**
-       * On click event on 'add rule' button. Create a new rule if we can (see rule_type).
+       * On click event on 'add rule' button.
        *
        * @method _onAddRuleClick
        */
@@ -243,15 +232,8 @@
           'type': '',
           'attributes': []
         });
-        if (index > -1) {
-          var rule_container = this._generateRuleContainer(index, this._currentStylesheetRule.get_rule(index));
-          this.$['rules-container'].appendChild(rule_container);
-        }
-        else{
-          this.notifyToast("You can't create another rule. If you wan't to add more, set the rule type to <b>Group</b>.",{
-            'type': 'Warning'
-          });
-        }
+        var rule_container = this._generateRuleContainer(index, this._currentStylesheetRule.get_rule(index));
+        this.$['rules-container'].appendChild(rule_container);
       },
 
       /**
@@ -356,10 +338,10 @@
       },
 
       _onApplyStylesheetRule: function(){
-        console.log(this._currentStylesheetRule);
         this.fire('stylesheet-editor-apply', {
           'rule': this._currentStylesheetRule.clone()
         });
+        this.clearRule();
       },
 
       /** ----------------------------------------------------------------------
@@ -559,12 +541,10 @@
       },
 
       createNewStylesheetRule: function(json) {
-
         function StylesheetRule(json) {
           // StylesheetRule properties
           json = json || {};
           this.id = json.id || "";
-          this.rule_type = json.ruleType || 'Simple';
           this.symbol = json.symbol || {
             'color': '#000000',
             'shape': 'CIRCLE'
@@ -587,30 +567,21 @@
             this.symbol.color = color || this.symbol.color;
             this.symbol.shape = shape || this.symbol.shape;
           }
-          // Set the rule_type ('Group' or 'Simple')
-          this.set_rule_type = function(rule_type) {
-            this.rule_type = rule_type;
-          }
           // Retrieve the json object of the rule.
           this.get_json = function() {
             return {
               'id': this.id,
-              'rule_type': this.rule_type,
               'symbol': this.symbol,
               'rules': this.rules
             }
           }
           // Add a rue or create a new one (empty). Returns the index of the created rule.
           this.add_rule = function(rule) {
-            if (this._isGroup() || this.rules.length < 1) {
-              (rule) ? this.rules.push(rule): this.rules.push({
-                'type': null,
-                'attributes': []
-              });
-              return this.rules.length - 1;
-            } else {
-              return -1;
-            }
+            (rule) ? this.rules.push(rule): this.rules.push({
+              'type': null,
+              'attributes': []
+            });
+            return this.rules.length - 1;
           }
           // Delete a rule.
           this.delete_rule = function(indexRule, indexAttribute) {
@@ -664,10 +635,6 @@
           // Set the type of a rule at an index.
           this.set_type = function(index, uri) {
             this.rules[index].type = uri;
-          }
-          // Returns true if `rule_type` == 'Group'. False otherwise.
-          this._isGroup = function() {
-            return (this.rule_type === 'Group');
           }
         };
 
