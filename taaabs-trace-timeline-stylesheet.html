@@ -246,7 +246,16 @@
        * @method _onVisibilityClicked
        */
       _onRuleDeleteClicked: function(rule) {
-        console.log(rule);
+        for(var i = 0; i < this.currentStylesheet.rules.length; i++){
+          if(this.currentStylesheet.rules[i].id === rule.id){
+            this.currentStylesheet.rules.splice(i,1);
+            i = this.currentStylesheet.rules.length;
+          }
+        }
+        this.fire('stylesheet-changed', {
+          'stylesheet': this.currentStylesheet
+        });
+        this.refresh();
       },
 
       /** ----------------------------------------------------------------------------
