@@ -204,8 +204,13 @@
        *
        * @method _onVisibilityClicked
        */
-      _onRuleVisibilityClicked: function(rule) {
-        console.log(rule);
+      _onRuleVisibilityClicked: function(rule, elem) {
+        rule.visible = !rule.visible;
+        if(rule.visible) elem.set('icon', 'icons:visibility');
+        else elem.set('icon', 'icons:visibility-off');
+        this.fire('stylesheet-changed', {
+          'stylesheet': this.currentStylesheet
+        });
       },
 
       /**
@@ -323,7 +328,7 @@
         if (rule.visible) vi.set('icon', 'visibility');
         else vi.set('icon', 'visibility-off');
         vi.addEventListener('click', function(evt) {
-          this._onRuleVisibilityClicked(rule);
+          this._onRuleVisibilityClicked(rule, vi);
         }.bind(this));
         // Create the content-copy icon_div
         var cci = document.createElement('iron-icon');
