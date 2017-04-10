@@ -550,7 +550,7 @@
             'shape': 'CIRCLE'
           };
           this.rules = json.rules || [];
-          this.visibility = json.visibility || true;
+          this.visible = json.visible || true;
           // Set the id of the StylesheetRule
           this.set_id = function(id) {
             this.id = id;
@@ -600,7 +600,7 @@
               'id': this.id,
               'symbol': this.symbol,
               'rules': this.rules,
-              'visibility': this.visibility
+              'visible': this.visible
             }));
           }
           // Returns the rules of the StylesheetRule.
