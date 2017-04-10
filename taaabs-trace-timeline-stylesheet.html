@@ -220,7 +220,11 @@
        * @method _onVisibilityClicked
        */
       _onRuleContentCopyClicked: function(rule) {
-        console.log(rule);
+        var newrule = JSON.parse(JSON.stringify(rule));
+        newrule.id = newrule.id + " copy";
+        this.fire('timeline-stylesheet-rule-setting', {
+          'rule': newrule
+        });
       },
 
       /**
