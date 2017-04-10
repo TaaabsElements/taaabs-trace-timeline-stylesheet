@@ -71,10 +71,10 @@
 
   <paper-dialog id="uploadStyleModal">
     <h2>Save your stylesheet</h2>
-    <input placeholder="name" class="inputWithIcon" style="outline:0" value="{{_styleName::input}}">
-    </input>
-    <input placeholder="description" class="inputWithIcon" style="outline:0" value="{{_styleDescription::input}}">
-    </input>
+    <paper-input id="uploadStyleSheetIDInput" label="id" value="[[currentStylesheet.name]]">
+    </paper-input>
+    <iron-autogrow-textarea id="uploadStyleSheetIDDescription" label="description" value="[[currentStylesheet.description]]">
+    </iron-autogrow-textarea>
     <div class="buttons">
       <paper-button dialog-dismiss>Cancel</paper-button>
       <paper-button dialog-confirm autofocus on-click="_onUploadStylesheet">Accept</paper-button>
@@ -188,6 +188,61 @@
       /** ----------------------------------------------------------------------------
       // MARK: Functions : DOM events.
       **/
+
+      _onTemplateUploadClick: function(){
+        this.$.uploadStyleModal.open();
+        console.log(this.model);
+        this.currentStylesheet.name.replace(/\s/g, '_');
+        console.log(this.currentStylesheet);
+
+        this.model.addStylesheet = function(stylesheet){
+          return new Promise(function(resolve, reject) {
+            console.log(this);
+            this.load().then(function(){
+              var styleIndex = -1;
+              if(this.graph[0].stylesheets === undefined || this.graph[0].stylesheets === null){
+                this.graph[0]['http://liris.cnrs.fr/silex/2009/ktbs#ModelStylesheets'] = [];
+              }
+              else{
+                for(var i = 0; i < this.graph[0].stylesheets.length; i++){
+                  if(this.graph[0].stylesheets[i]['id'] === stylesheet.name){
+                    styleIndex = i;
+                    i = this.graph[0].stylesheets.length;
+                  }
+                }
+              }
+              console.log(styleIndex);
+              if(styleIndex > -1){
+                this.graph[0].stylesheets[styleIndex].description = stylesheet.description;
+                this.graph[0].stylesheets[styleIndex].rules = stylesheet.rules;
+              }
+              else{
+                this.graph[0]['http://liris.cnrs.fr/silex/2009/ktbs#ModelStylesheets'].push(JSON.stringify({
+                  'id': stylesheet.name,
+                  'description': stylesheet.description,
+                  'rules': stylesheet.rules
+                }));
+              }
+              console.log(this.graph);
+              this.put_model(this.graph).then(function(model){
+                resolve(model);
+              }).catch(function(err){
+                reject(err);
+              })
+            }.bind(this)).catch(function(error){
+              reject(err);
+            }.bind(this));
+          }.bind(this));
+        };
+
+        this.model.addStylesheet(this.currentStylesheet).then(function(model){
+          console.log(model);
+        }).catch(function(err){
+          console.log(err);
+        });
+
+        ;
+      },
 
       /**
        * Toggles `templateOptionsCollapse`.
