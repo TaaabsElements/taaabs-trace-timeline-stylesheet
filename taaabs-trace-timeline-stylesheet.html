@@ -200,25 +200,32 @@
             console.log(this);
             this.load().then(function(){
               var styleIndex = -1;
-              if(this.graph[0].stylesheets === undefined || this.graph[0].stylesheets === null){
-                this.graph[0]['http://liris.cnrs.fr/silex/2009/ktbs#ModelStylesheets'] = [];
+              if(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] === undefined || this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] === null){
+                this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] = [];
               }
               else{
-                for(var i = 0; i < this.graph[0].stylesheets.length; i++){
-                  if(this.graph[0].stylesheets[i]['id'] === stylesheet.name){
+                if(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].constructor !== Array){
+                  this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] = [this.graph[0]['http://www.example.com/TODO#ModelStylesheets']];
+                }
+                for(var i = 0; i < this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].length; i++){
+                  var ms = JSON.parse(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'][i]);
+                  if(ms['name'] === stylesheet.name){
                     styleIndex = i;
-                    i = this.graph[0].stylesheets.length;
+                    i = this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].length;
                   }
                 }
               }
               console.log(styleIndex);
               if(styleIndex > -1){
-                this.graph[0].stylesheets[styleIndex].description = stylesheet.description;
-                this.graph[0].stylesheets[styleIndex].rules = stylesheet.rules;
+                  var ms = JSON.parse(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'][styleIndex]);
+                  ms.description = stylesheet.description;
+                  ms.rules = stylesheet.rules;
+                  this.graph[0]['http://www.example.com/TODO#ModelStylesheets'][styleIndex] = JSON.stringify(ms);
               }
               else{
-                this.graph[0]['http://liris.cnrs.fr/silex/2009/ktbs#ModelStylesheets'].push(JSON.stringify({
-                  'id': stylesheet.name,
+                console.log('ON PUSH MERDE.....');
+                this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].push(JSON.stringify({
+                  'name': stylesheet.name,
                   'description': stylesheet.description,
                   'rules': stylesheet.rules
                 }));
@@ -230,7 +237,7 @@
                 reject(err);
               })
             }.bind(this)).catch(function(error){
-              reject(err);
+              reject(error);
             }.bind(this));
           }.bind(this));
         };
@@ -240,8 +247,6 @@
         }).catch(function(err){
           console.log(err);
         });
-
-        ;
       },
 
       /**
