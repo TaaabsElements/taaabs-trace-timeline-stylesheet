@@ -60,6 +60,8 @@
         <iron-icon icon="icons:edit" on-click="_onTemplateEditClick"></iron-icon>
         <iron-icon icon="icons:file-download" on-click="_onTemplateDownloadClick"></iron-icon>
         <iron-icon icon="icons:file-upload" on-click="_onTemplateUploadClick"></iron-icon>
+        <iron-icon icon="icons:cloud-upload" on-click="_onCreateMethodClick"></iron-icon>
+
         <iron-icon icon="icons:close" on-click="_onTemplateDeleteClick"></iron-icon>
       </div>
     </iron-collapse>
@@ -79,6 +81,28 @@
       <paper-button dialog-dismiss>Cancel</paper-button>
       <paper-button dialog-confirm autofocus on-click="_onUploadStylesheet">Accept</paper-button>
     </div>
+  </paper-dialog>
+
+  <paper-dialog id="createMethodModal">
+    <h2>Create your own method</h2>
+    <paper-input id="createMethodIDInput" label="id" value="[[currentStylesheet.name]]">
+    </paper-input>
+    <iron-autogrow-textarea id="createMethodDescriptionInput" label="description" value="[[currentStylesheet.description]]">
+    </iron-autogrow-textarea>
+    <div class="buttons">
+      <paper-button dialog-dismiss>Cancel</paper-button>
+      <paper-button dialog-confirm autofocus on-click="_onCreateMethod">Accept</paper-button>
+    </div>
+  </paper-dialog>
+
+  <paper-dialog id="downloadStylesheetModal">
+    <h2>Select your stylesheet</h2>
+    <template is="dom-repeat" items="[[_stylesheetsList]]">
+      <div on-click="_onStylesheetSelect">
+        <p>[[item.name]]</p>
+        <p style="font-style:italic">[[item.description]]</p>
+      </div>
+    </template>
   </paper-dialog>
 
   </template>
@@ -107,6 +131,12 @@
           value: function() {
             return [];
           }
+        },
+
+        _stylesheetsList: {
+          type: Array,
+          notify: true,
+          value: []
         },
 
         _stylesheets: {
@@ -191,62 +221,83 @@
 
       _onTemplateUploadClick: function(){
         this.$.uploadStyleModal.open();
-        console.log(this.model);
+      },
+
+      _onUploadStylesheet: function() {
+        this.currentStylesheet.name = this.$.uploadStyleSheetIDInput.value;
         this.currentStylesheet.name.replace(/\s/g, '_');
-        console.log(this.currentStylesheet);
-
-        this.model.addStylesheet = function(stylesheet){
-          return new Promise(function(resolve, reject) {
-            console.log(this);
-            this.load().then(function(){
-              var styleIndex = -1;
-              if(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] === undefined || this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] === null){
-                this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] = [];
-              }
-              else{
-                if(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].constructor !== Array){
-                  this.graph[0]['http://www.example.com/TODO#ModelStylesheets'] = [this.graph[0]['http://www.example.com/TODO#ModelStylesheets']];
-                }
-                for(var i = 0; i < this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].length; i++){
-                  var ms = JSON.parse(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'][i]);
-                  if(ms['name'] === stylesheet.name){
-                    styleIndex = i;
-                    i = this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].length;
-                  }
-                }
-              }
-              console.log(styleIndex);
-              if(styleIndex > -1){
-                  var ms = JSON.parse(this.graph[0]['http://www.example.com/TODO#ModelStylesheets'][styleIndex]);
-                  ms.description = stylesheet.description;
-                  ms.rules = stylesheet.rules;
-                  this.graph[0]['http://www.example.com/TODO#ModelStylesheets'][styleIndex] = JSON.stringify(ms);
-              }
-              else{
-                console.log('ON PUSH MERDE.....');
-                this.graph[0]['http://www.example.com/TODO#ModelStylesheets'].push(JSON.stringify({
-                  'name': stylesheet.name,
-                  'description': stylesheet.description,
-                  'rules': stylesheet.rules
-                }));
-              }
-              console.log(this.graph);
-              this.put_model(this.graph).then(function(model){
-                resolve(model);
-              }).catch(function(err){
-                reject(err);
-              })
-            }.bind(this)).catch(function(error){
-              reject(error);
-            }.bind(this));
-          }.bind(this));
-        };
-
+        this.currentStylesheet.description = this.$.uploadStyleSheetIDDescription.value;
         this.model.addStylesheet(this.currentStylesheet).then(function(model){
-          console.log(model);
-        }).catch(function(err){
+          this.refresh();
+        }.bind(this)).catch(function(err){
           console.log(err);
         });
+      },
+
+      _onCreateMethodClick: function(){
+        this.$.createMethodModal.open();
+      },
+
+      _onCreateMethod: function(){
+        var base = new Samotraces.Ktbs.Base(this.model.base_uri);
+        console.log(base);
+        var id = this.$.createMethodIDInput.value.replace(/\s/g,'_');
+        var label = this.$.createMethodDescriptionInput.value;
+        var type_names = [];
+        var types = [];
+        for(var i = 0; i < this.currentStylesheet.rules.length; i++){
+          type_names.push('#'+this.currentStylesheet.rules[i].id.replace(/\s/g, '_'));
+          types.push({
+            "@id": type_names[i] ,
+            "@type": "ObselType"
+          });
+        }
+        base.create_model(id+"_model", "Model generated for the method "+this.model.base_uri+id+"/", null, this.model.model_properties['hasUnit'])
+            .then(function(model){
+              var g = [{
+                  "@id": this.model.base_uri+id+"_model",
+                  "@type": "TraceModel",
+                  "inBase": "./" ,
+                  "hasUnit": "millisecond" ,
+                  "label": "Model generated for the method "+this.model.base_uri+id+"/",
+                  "http://www.w3.org/2000/01/rdf-schema#comment": ""
+              }];
+              for(var i = 0; i < types.length; i++){
+                g.push(types[i]);
+              }
+              for(var i = 0; i < this.model.list_type_attributes.length; i++){
+                g.push({
+                  "@id": this.model.list_type_attributes[i]['@id'].replace(this.model.uri, '') ,
+                  "@type": "AttributeType" ,
+                  "hasAttributeObselType": type_names ,
+                  "hasAttributeDatatype": this.model.list_type_attributes[i]["hasAttributeDatatype"]
+                });
+              }
+              model.put_model(g)
+                   .then(function(resp){
+                     var rules = [];
+                     for(var i = 0; i < this.currentStylesheet.rules.length; i++){
+                       rules.push({
+                         'id': this.currentStylesheet.rules[i].id,
+                         'rules': this.currentStylesheet.rules[i].rules
+                       });
+                     }
+                     var params = ["model="+this.model.base_uri+id+"_model", "rules="+JSON.stringify(rules)];
+                     base.create_method(id, 'hrules', params, label)
+                         .then(function(resp){
+                           console.log(resp);
+                         }.bind(this))
+                         .catch(function(err){
+                           console.log(err);
+                         })
+                   }.bind(this))
+                   .catch(function(err){
+                     console.log(err);
+                   });
+            }.bind(this))
+            .catch(function(err){
+              console.log(err);
+            });
       },
 
       /**
@@ -256,6 +307,33 @@
        */
       _onTemplateMenuClick: function() {
         this.$.templateOptionsCollapse.toggle();
+      },
+
+      _onTemplateDownloadClick: function(){
+        var prop_uri = 'http://www.example.com/TODO#ModelStylesheets';
+        var l = [];
+        if( this.model.graph[0][prop_uri] ){
+          if(this.model.graph[0][prop_uri].constructor !== Array){
+            l = [this.model.graph[0][prop_uri]];
+          }
+          for(var i = 0; i < this.model.graph[0][prop_uri].length; i++){
+            try {
+              l.push(JSON.parse(this.model.graph[0][prop_uri][i]));
+            }catch(err){}
+          }
+        }
+        this.set('_stylesheetsList', l);
+        this.$.downloadStylesheetModal.open();
+      },
+
+      _onStylesheetSelect: function(evt){
+        this.set('currentStylesheet', evt.model.item);
+        this.set('_stylesheetsList', []);
+        this.$.downloadStylesheetModal.close();
+        this.fire('stylesheet-changed',{
+          'stylesheet': this.currentStylesheet
+        });
+        this.refresh();
       },
 
       /**
@@ -596,36 +674,9 @@
 
       _onUploadClick: function() {
         this.$.uploadStyleModal.toggle();
-      },
-
-      _onUploadStylesheet: function() {
-        // Retrieve all the stylesheets
-        var _stylesheets = [];
-        for (var i = 0; i < this._stylesheets.length; i++) {
-          _stylesheets.push(this._stylesheets[i]);
-        }
-        this.styleTemplate.name = this._styleName;
-        this.styleTemplate.description = this._styleDescription;
-        _stylesheets.push(this.styleTemplate);
-
-        console.log(_stylesheets);
-
-        var _graph = this.model.graph;
-        for (i = 0; i < _graph.length; i++) {
-          if (_graph[i]['@type'] === 'TraceModel') {
-            _graph[i]['http://taaabs-hubble/onto#timeline-stylesheet'] = JSON.stringify(_stylesheets);
-          }
-        }
-
-        var that = this;
-        this.model.put_model(_graph)
-          .then(function() {
-            console.log(' _model updated ');
-          })
-          .catch(function(err) {
-            console.log(err);
-          });
       }
+
+
 
     });
   </script>
