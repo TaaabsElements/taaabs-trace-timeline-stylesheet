@@ -65,10 +65,7 @@
         <iron-icon icon="icons:close" on-click="_onTemplateDeleteClick"></iron-icon>
       </div>
     </iron-collapse>
-    <div class="flex-vertical" id="rules-container" style="padding: 5px">
-
-
-    </div>
+    <div class="flex-vertical" id="rules-container" style="padding: 5px"></div>
 
 
   <paper-dialog id="uploadStyleModal">
@@ -214,6 +211,16 @@
       ready: function() {},
 
       attached: function() {},
+
+      updateStylesheetCount: function(matches){
+        var rulesDivs = this.$['rules-container'].childNodes;
+        for(var i = 0; i < rulesDivs.length;  i++){
+          var titleDiv = rulesDivs[i].childNodes[0].childNodes[0];
+          var distSpan = document.createElement('span');
+          distSpan.textContent = matches[i].local + ' / '+matches[i].overall;
+          titleDiv.appendChild(distSpan);
+        }
+      },
 
       /** ----------------------------------------------------------------------------
       // MARK: Functions : DOM events.
