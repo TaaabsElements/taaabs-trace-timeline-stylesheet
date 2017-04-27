@@ -41,6 +41,10 @@
         width: 16px;
         height: 16px;
       }
+
+      :host .clickable {
+        cursor: pointer;
+      }
     </style>
 
     <div class="flex-horizontal" style="padding:5px">
@@ -215,10 +219,8 @@
       updateStylesheetCount: function(matches){
         var rulesDivs = this.$['rules-container'].childNodes;
         for(var i = 0; i < rulesDivs.length;  i++){
-          var titleDiv = rulesDivs[i].childNodes[0].childNodes[0];
-          var distSpan = document.createElement('span');
+          var distSpan = rulesDivs[i].childNodes[0].childNodes[0].childNodes[1];
           distSpan.textContent = matches[i].local + ' / '+matches[i].overall;
-          titleDiv.appendChild(distSpan);
         }
       },
 
@@ -529,8 +531,20 @@
         rule_name_span.style.fontSize = '16px';
         rule_name_span.textContent = rule.id;
         rule_name_div.appendChild(rule_name_span);
+        var rule_dist_span = document.createElement('span');
+        rule_dist_span.style.marginLeft = '10px';
+        rule_dist_span.style.fontSize = '12px';
+        rule_name_div.appendChild(rule_dist_span);
         var option_icon_div = document.createElement('div');
-        option_icon_div.style.width = '20px';
+        option_icon_div.style.width = '60px';
+        var move_up_icon = document.createElement('iron-icon');
+        move_up_icon.set('icon', 'icons:arrow-drop-up');
+        move_up_icon.classList.add('tiny-icon', 'clickable');
+        option_icon_div.appendChild(move_up_icon);
+        var move_down_icon = document.createElement('iron-icon');
+        move_down_icon.set('icon', 'icons:arrow-drop-down');
+        move_down_icon.classList.add('tiny-icon', 'clickable');
+        option_icon_div.appendChild(move_down_icon);
         var option_icon = document.createElement('iron-icon');
         option_icon.set('icon', 'expand-more');
         option_icon.classList.add('tiny-icon', 'clickable');
@@ -541,6 +555,36 @@
         var ruleSettingsIcons = this._createRuleSettingsIcons(rule);
         option_icon.addEventListener('click', function(evt) {
           ruleSettingsIcons.toggle();
+        }.bind(this));
+        move_up_icon.addEventListener('click', function(evt) {
+          var child = main_div;
+          var parent = child.parentNode;
+          // The equivalent of parent.children.indexOf(child)
+          var index = Array.prototype.indexOf.call(parent.children, child);
+          if(index > 0){
+            parent.insertBefore(child, parent.childNodes[index - 1]);
+            var tmp = this.currentStylesheet.rules[index];
+            this.currentStylesheet.rules[index] = this.currentStylesheet.rules[index - 1];
+            this.currentStylesheet.rules[index - 1] = tmp;
+          }
+          this.fire('stylesheet-changed', {
+            'stylesheet': this.currentStylesheet
+          });
+        }.bind(this));
+        move_down_icon.addEventListener('click', function(evt) {
+          var child = main_div;
+          var parent = child.parentNode;
+          // The equivalent of parent.children.indexOf(child)
+          var index = Array.prototype.indexOf.call(parent.children, child);
+          if(index < this.currentStylesheet.rules.length){
+            parent.insertBefore(parent.childNodes[index + 1], child);
+            var tmp = this.currentStylesheet.rules[index];
+            this.currentStylesheet.rules[index] = this.currentStylesheet.rules[index + 1];
+            this.currentStylesheet.rules[index + 1] = tmp;
+          }
+          this.fire('stylesheet-changed', {
+            'stylesheet': this.currentStylesheet
+          });
         }.bind(this));
         // Create the rule content div
         var ruleContentDiv = this._createRuleContentDiv(rule);
