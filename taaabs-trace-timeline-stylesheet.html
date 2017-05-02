@@ -2,39 +2,17 @@
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html">
+<link rel="import" href="../app-localize-behavior/app-localize-behavior.html">
+<link rel="import" href="../taaabs-themes/taaabs-theme.html">
 
 <dom-module id="taaabs-trace-timeline-stylesheet">
 
   <template>
-
+    <style include="taaabs-theme"></style>
     <style>
       :host {
         display: block;
-      }
-
-      :host .flexchild {
-        @apply(--layout-flex);
-      }
-
-      :host .flex-vertical {
-        @apply(--layout-vertical);
-      }
-
-      :host .flex-horizontal {
-        @apply(--layout-horizontal);
-      }
-
-      :host .flex-equal-justified {
-        @apply(--layout-justified);
-      }
-
-      :host .flex-equal-around-justified {
-        @apply(--layout-horizontal);
-        @apply(--layout-around-justified);
-      }
-
-      :host .flex-reversed {
-        @apply(--layout-horizontal-reverse);
       }
 
       :host .tiny-icon {
@@ -42,8 +20,12 @@
         height: 16px;
       }
 
-      :host .clickable {
-        cursor: pointer;
+      :host .select-stylesheet-div {
+        transition: background-color ease-in-out 0.3s;
+      }
+
+      :host .select-stylesheet-div:hover {
+        background-color: var(--paper-grey-100);
       }
     </style>
 
@@ -52,7 +34,9 @@
         <span style="font-size: 20px">[[currentStylesheet.name]]</span>
       </div>
       <div style="width: 30px">
-        <iron-icon icon="icons:expand-more" on-click="_onTemplateMenuClick"></iron-icon>
+        <iron-icon class="clickable fgBlack fgBlackH hoverable" icon="icons:expand-more"
+                   title="[[localize('expand')]]"               on-click="_onTemplateMenuClick">
+        </iron-icon>
       </div>
     </div>
     <div style="padding:5px">
@@ -60,27 +44,31 @@
     </div>
     <iron-collapse id="templateOptionsCollapse">
       <div class="content flex-equal-around-justified flex-horizontal">
-        <iron-icon icon="icons:add" on-click="_onTemplateAddClick"></iron-icon>
-        <iron-icon icon="icons:edit" on-click="_onTemplateEditClick"></iron-icon>
-        <iron-icon icon="icons:file-download" on-click="_onTemplateDownloadClick"></iron-icon>
-        <iron-icon icon="icons:file-upload" on-click="_onTemplateUploadClick"></iron-icon>
-        <iron-icon icon="icons:cloud-upload" on-click="_onCreateMethodClick"></iron-icon>
-
-        <iron-icon icon="icons:close" on-click="_onTemplateDeleteClick"></iron-icon>
+        <iron-icon icon="icons:add"           title="unavailable"              on-click="_onTemplateAddClick"      disabled></iron-icon>
+        <iron-icon icon="icons:edit"          title="unavailable"              on-click="_onTemplateEditClick"     disabled></iron-icon>
+        <iron-icon class="clickable fgBlack fgBlackH hoverable" icon="icons:file-download"
+                   title="[[localize('download-stylesheet')]]"  on-click="_onTemplateDownloadClick"></iron-icon>
+        <iron-icon class="clickable fgBlack fgBlackH hoverable" icon="icons:file-upload"
+                   title="[[localize('upload-stylesheet')]]"    on-click="_onTemplateUploadClick"></iron-icon>
+        <iron-icon class="clickable fgBlack fgBlackH hoverable" icon="icons:cloud-upload"
+                   title="[[localize('create-method')]]"        on-click="_onCreateMethodClick"></iron-icon>
+        <iron-icon icon="icons:close"         title="unavailable"              on-click="_onTemplateDeleteClick" disabled></iron-icon>
       </div>
     </iron-collapse>
     <div class="flex-vertical" id="rules-container" style="padding: 5px"></div>
 
 
   <paper-dialog id="uploadStyleModal">
-    <h2>Save your stylesheet</h2>
+    <h2>[[localize('save-stylesheet')]]</h2>
     <paper-input id="uploadStyleSheetIDInput" label="id" value="[[currentStylesheet.name]]">
     </paper-input>
-    <iron-autogrow-textarea id="uploadStyleSheetIDDescription" label="description" value="[[currentStylesheet.description]]">
+    <span>Label</span>
+    <iron-autogrow-textarea id="uploadStyleSheetIDDescription" value="[[currentStylesheet.description]]"
+                            style="margin-left: 5px; margin-right: 24px">
     </iron-autogrow-textarea>
     <div class="buttons">
-      <paper-button dialog-dismiss>Cancel</paper-button>
-      <paper-button dialog-confirm autofocus on-click="_onUploadStylesheet">Accept</paper-button>
+      <paper-button dialog-dismiss>[[localize('cancel')]]</paper-button>
+      <paper-button dialog-confirm autofocus on-click="_onUploadStylesheet">[[localize('save')]]</paper-button>
     </div>
   </paper-dialog>
 
@@ -88,20 +76,24 @@
     <h2>Create your own method</h2>
     <paper-input id="createMethodIDInput" label="id" value="[[currentStylesheet.name]]">
     </paper-input>
-    <iron-autogrow-textarea id="createMethodDescriptionInput" label="description" value="[[currentStylesheet.description]]">
+    <span>Label</span>
+    <iron-autogrow-textarea id="createMethodDescriptionInput" label="description" value="[[currentStylesheet.description]]"
+                            style="margin-left: 5px; margin-right: 24px">
     </iron-autogrow-textarea>
     <div class="buttons">
-      <paper-button dialog-dismiss>Cancel</paper-button>
-      <paper-button dialog-confirm autofocus on-click="_onCreateMethod">Accept</paper-button>
+      <paper-button dialog-dismiss>[[localize('cancel')]]</paper-button>
+      <paper-button dialog-confirm autofocus on-click="_onCreateMethod">[[localize('save')]]</paper-button>
     </div>
   </paper-dialog>
 
   <paper-dialog id="downloadStylesheetModal">
-    <h2>Select your stylesheet</h2>
+    <h2>[[localize('select-stylesheet')]]</h2>
     <template is="dom-repeat" items="[[_stylesheetsList]]">
-      <div on-click="_onStylesheetSelect">
-        <p>[[item.name]]</p>
-        <p style="font-style:italic">[[item.description]]</p>
+      <div class="select-stylesheet-div clickable hoverable" on-click="_onStylesheetSelect">
+        <p>
+          <b>[[item.name]]</b> <br/>
+          <span style="font-style:italic">[[item.description]]</span>
+        </p>
       </div>
     </template>
   </paper-dialog>
@@ -196,6 +188,49 @@
           value: null
         },
 
+        resources: {
+          type: Object,
+          notify: true,
+          value: function(){
+            return {
+              "en": {
+                "expand":              "Toggle options",
+                "download-stylesheet": "Load an existing stylesheet",
+                "upload-stylesheet":   "Save the current stylesheet",
+                "create-method":       "Create a new method with the current stylesheet",
+                "move-up":             "Move up",
+                "move-down":           "Move down",
+                "visibility-toggle":    "Hide/show the obsels matching the rule",
+                "copy-rule":           "Copy the rule",
+                "edit-rule":           "Edit the rule",
+                "delete-rule":         "Delete the rule",
+                "select-stylesheet":   "Select your stylesheet",
+                "save-stylesheet":     "Save your stylesheet",
+                "save":                "Save",
+                "cancel":              "Cancel",
+                "create":              "Create"
+              },
+              "fr": {
+                "expand":              "Afficher les options",
+                "download-stylesheet": "Charger une stylesheet existante",
+                "upload-stylesheet":   "Sauvegarder la stylesheet actuelle",
+                "create-method":       "Créer une méthode à partir de la stylesheet actuelle",
+                "move-up":             "Monter la règle d'un niveau",
+                "move-down":           "Descendre la règle d'un niveau",
+                "visibility-toggle":    "Cacher/montrer les obsels respectant cette règle",
+                "copy-rule":           "Copier la règle",
+                "edit-rule":           "Éditer la règle",
+                "delete-rule":         "Supprimer la règle",
+                "select-stylesheet":   "Choisissez votre stylesheet",
+                "save-stylesheet":     "Sauvegardez votre stylesheet",
+                "save":                "Sauvegarder",
+                "cancel":              "Annuler",
+                "create":              "Créer"
+              }
+            }
+          }
+        },
+
         /**
          * Localization.
          * fr, en.
@@ -205,10 +240,15 @@
          */
         language: {
           type: String,
-          notify: true
+          notify: true,
+          value: 'en'
         },
 
       },
+
+      behaviors: [
+        Polymer.AppLocalizeBehavior
+      ],
 
       observers: [],
 
@@ -249,7 +289,6 @@
 
       _onCreateMethod: function(){
         var base = new Samotraces.Ktbs.Base(this.model.base_uri);
-        console.log(base);
         var id = this.$.createMethodIDInput.value.replace(/\s/g,'_');
         var label = this.$.createMethodDescriptionInput.value;
         var type_names = [];
@@ -294,7 +333,6 @@
                      var params = ["model="+this.model.base_uri+id+"_model", "rules="+JSON.stringify(rules)];
                      base.create_method(id, 'hrules', params, label)
                          .then(function(resp){
-                           console.log(resp);
                          }.bind(this))
                          .catch(function(err){
                            console.log(err);
@@ -484,7 +522,8 @@
         div.classList.add('content', 'flex-equal-around-justified', 'flex-horizontal');
         // Create the visibility icon_div
         var vi = document.createElement('iron-icon');
-        vi.classList.add('tiny-icon', 'clickable');
+        vi.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        vi.title = this.localize('visibility-toggle');
         if (rule.visible) vi.set('icon', 'visibility');
         else vi.set('icon', 'visibility-off');
         vi.addEventListener('click', function(evt) {
@@ -492,21 +531,24 @@
         }.bind(this));
         // Create the content-copy icon_div
         var cci = document.createElement('iron-icon');
-        cci.classList.add('tiny-icon', 'clickable');
+        cci.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        cci.title = this.localize('copy-rule');
         cci.set('icon', 'content-copy');
         cci.addEventListener('click', function(evt) {
           this._onRuleContentCopyClicked(rule);
         }.bind(this));
         // Create the settings icon_div
         var si = document.createElement('iron-icon');
-        si.classList.add('tiny-icon', 'clickable');
+        si.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        si.title = this.localize('edit-rule');
         si.set('icon', 'settings');
         si.addEventListener('click', function(evt) {
           this._onRuleSettingsClicked(rule);
         }.bind(this));
         // Create the close icon_div
         var ci = document.createElement('iron-icon');
-        ci.classList.add('tiny-icon', 'clickable');
+        ci.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        ci.title = this.localize('delete-rule');
         ci.set('icon', 'close');
         ci.addEventListener('click', function(evt) {
           this._onRuleDeleteClicked(rule);
@@ -539,15 +581,18 @@
         option_icon_div.style.width = '60px';
         var move_up_icon = document.createElement('iron-icon');
         move_up_icon.set('icon', 'icons:arrow-drop-up');
-        move_up_icon.classList.add('tiny-icon', 'clickable');
+        move_up_icon.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        move_up_icon.title = this.localize('move-up');
         option_icon_div.appendChild(move_up_icon);
         var move_down_icon = document.createElement('iron-icon');
         move_down_icon.set('icon', 'icons:arrow-drop-down');
-        move_down_icon.classList.add('tiny-icon', 'clickable');
+        move_down_icon.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        move_down_icon.title = this.localize('move-down');
         option_icon_div.appendChild(move_down_icon);
         var option_icon = document.createElement('iron-icon');
         option_icon.set('icon', 'expand-more');
-        option_icon.classList.add('tiny-icon', 'clickable');
+        option_icon.classList.add('clickable','fgBlack','fgBlackH','hoverable', 'tiny-icon');
+        option_icon.title = this.localize('expand');
         option_icon_div.appendChild(option_icon);
         title_div.appendChild(rule_name_div);
         title_div.appendChild(option_icon_div);

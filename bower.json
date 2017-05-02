@@ -22,7 +22,6 @@
     "iron-collapse": "PolymerElements/iron-collapse",
     "iron-icons": "PolymerElements/iron-icons",
     "iron-iconset-svg": "PolymerElements/iron-iconset-svg",
-    "paper-color-picker": "https://github.com/David-Mulder/paper-color-picker.git",
     "paper-button": "PolymerElements/paper-button",
     "paper-dialog": "PolymerElements/paper-dialog",
     "taaabs-themes":"TaaabsElements/taaabs-themes"
