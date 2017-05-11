@@ -24,6 +24,7 @@
     "iron-iconset-svg": "PolymerElements/iron-iconset-svg",
     "paper-button": "PolymerElements/paper-button",
     "paper-dialog": "PolymerElements/paper-dialog",
+    "paper-swatch-picker": "PolymerElements/paper-swatch-picker",
     "taaabs-themes":"TaaabsElements/taaabs-themes"
   },
   "devDependencies": {
