@@ -17,14 +17,14 @@
   "main": "taaabs-trace-timeline-stylesheet.html",
   "license": "https://github.com/TaaabsElements/taaabs-trace-timeline-stylesheet/LICENSE",
   "dependencies": {
-    "polymer": "polymer/polymer",
-    "app-localize-behavior": "PolymerElements/app-localize-behavior",
-    "iron-collapse": "PolymerElements/iron-collapse",
-    "iron-icons": "PolymerElements/iron-icons",
-    "iron-iconset-svg": "PolymerElements/iron-iconset-svg",
-    "paper-button": "PolymerElements/paper-button",
-    "paper-dialog": "PolymerElements/paper-dialog",
-    "paper-swatch-picker": "PolymerElements/paper-swatch-picker",
+    "polymer": "Polymer/polymer#<2.*",
+    "app-localize-behavior": "PolymerElements/app-localize-behavior#<2.*",
+    "iron-collapse": "PolymerElements/iron-collapse#<2.*",
+    "iron-icons": "PolymerElements/iron-icons#<2.*",
+    "iron-iconset-svg": "PolymerElements/iron-iconset-svg#<2.*",
+    "paper-button": "PolymerElements/paper-button#<2.*",
+    "paper-dialog": "PolymerElements/paper-dialog#<2.*",
+    "paper-swatch-picker": "PolymerElements/paper-swatch-picker#<2.*",
     "taaabs-themes":"TaaabsElements/taaabs-themes"
   },
   "devDependencies": {
